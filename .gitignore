@@ -1,1 +1,17 @@
+# nodejs
 node_modules/
+
+# mpc setup
+challenge*
+*.ptau
+response*
+
+# circuit
+*.r1cs
+*.r1cs.json
+*.sym
+*.wasm
+
+# zkey
+*.zkey
+build/*.json

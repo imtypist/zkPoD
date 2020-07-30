@@ -3,13 +3,14 @@
   "version": "1.0.0",
   "description": "zkSNARK based proof of data consensus",
   "main": "index.js",
+  "repository": "https://github.com/imtypist/zkPoD",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "circom": "^0.5.17",
+    "node-uuid": "^1.4.8",
     "snarkjs": "^0.3.11"
   }
 }

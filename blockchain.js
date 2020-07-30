@@ -1,5 +1,7 @@
 const crypto = require("crypto");
-
+const prove = require("./prove");
+const verify = require("./verify");
+const uuid = require('node-uuid');
 
 class Blockchain {
     constructor() {
@@ -7,32 +9,70 @@ class Blockchain {
         this.pendingTransactions = [];
         this.newBlock();
         this.peers = new Set();
+        this.address = uuuid.v1().split('-').join("");
     }
 
     /**
      * Adds a node to our peer table
      */
-    addPeer(host) {
-        this.peers.add(host);
+    addPeer(address) {
+        this.peers.add(address);
     }
 
     /**
-     * Adds a node to our peer table
+     * Gets peers from our peer table
      */
     getPeers() {
         return Array.from(this.peers);
     }
 
     /**
+     * Adds a transaction to pending list
+     * @param recipient can be a smart contract or external owner account
+     */
+    addTransaction(sender, recipient) {
+        let tx = {
+            timestamp: new Date().toISOString(),
+            sender,
+            recipient
+        };
+
+        tx.hash = Blockchain.hash(tx);
+
+        console.log(`Added transaction ${tx.hash}`);
+
+        this.pendingTransactions.push(tx);
+    }
+
+    /**
      * Creates a new block containing any outstanding transactions
      */
-    newBlock(previousHash, nonce = null) {
+    newBlock() {
+        let currentTransactions = this.mine();
+
+        if (currentTransactions == false) {
+            console.log("Not satisfy the difficulty!");
+            return false;
+        }
+
+        // Give reward to miner
+        let tx = {
+            timestamp: new Date().toISOString(),
+            sender: null,
+            recipient: this.address
+        };
+
+        tx.hash = Blockchain.hash(tx);
+
+        // Put it on the first position
+        currentTransactions.unshift(tx);
+
         let block = {
             index: this.chain.length,
             timestamp: new Date().toISOString(),
-            transactions: this.pendingTransactions,
-            previousHash,
-            nonce
+            transactions: currentTransactions,
+            previousHash: this.lastBlock.hash,
+            nonce: Blockchain.nonce()
         };
 
         block.hash = Blockchain.hash(block);
@@ -42,8 +82,9 @@ class Blockchain {
         // Add the new block to the blockchain
         this.chain.push(block);
 
-        // Reset pending transactions
-        this.pendingTransactions = [];
+        console.log("We mined a block!")
+        console.log(` - Block hash: ${Blockchain.hash(block)}`);
+        console.log(` - nonce:      ${block.nonce}`);
     }
 
     /**
@@ -62,16 +103,6 @@ class Blockchain {
     }
 
     /**
-     * Determines if a hash begins with a "difficulty" number of 0s
-     *
-     * @param hashOfBlock: the hash of the block (hex string)
-     * @param difficulty: an integer defining the difficulty
-     */
-    static powIsAcceptable(hashOfBlock, difficulty) {
-        return hashOfBlock.slice(0, difficulty) === "0".repeat(difficulty);
-    }
-
-    /**
      * Generates a random 32 byte string
      */
     static nonce() {
@@ -84,18 +115,39 @@ class Blockchain {
      * We hash the block with random string until the hash begins with
      * a "difficulty" number of 0s.
      */
-    mine(blockToMine = null, difficulty = 4) {
-        const block = blockToMine || this.lastBlock();
+    async mine(difficulty = 4) {
+        let currentTransactions = [];
 
-        while (true) {
-            block.nonce = Blockchain.nonce();
-            if (Blockchain.powIsAcceptable(Blockchain.hash(block), difficulty)) {
-                console.log("We mined a block!")
-                console.log(` - Block hash: ${Blockchain.hash(block)}`);
-                console.log(` - nonce:      ${block.nonce}`);
-                return block;
+        if (this.pendingTransactions.length < difficulty) return false;
+
+        while (difficulty--) {
+            let tx = this.pendingTransactions[0];
+            this.pendingTransactions.shift();
+            const { proof, publicSignals } = await prove.Prove({a:2,b:11});
+            tx.proof = proof;
+            tx.publicSignals = publicSignals;
+            tx.index = currentTransactions.length;
+            currentTransactions.push(tx);
+        }
+
+        return currentTransactions;
+    }
+
+    async syncBlock(block) {
+        if (block.index != (this.chain.length + 1) || block.hash != this.lastBlock.hash) return false;
+
+        for (var i = block.transactions.length - 1; i >= 0; i--) {
+            var proof = block.transactions[i].proof;
+            var publicSignals = block.transactions[i].publicSignals;
+            res = await verify.Verify(proof, publicSignals);
+            if (res == false) {
+                console.log("Verify failed! Reject this block!");
+                return false;
             }
         }
+
+        this.chain.push(block);
+
     }
 }
 

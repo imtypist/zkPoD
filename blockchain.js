@@ -2,6 +2,7 @@ const crypto = require("crypto");
 const prove = require("./prove");
 const verify = require("./verify");
 const uuid = require('node-uuid');
+const BigNumber = require('bignumber.js');
 
 class Blockchain {
     constructor() {
@@ -48,11 +49,16 @@ class Blockchain {
      * Creates a new block containing any outstanding transactions
      */
     newBlock() {
-        let currentTransactions = this.mine();
+        let localDifficulty = 1;
 
-        if (currentTransactions == false) {
-            console.log("Not satisfy the difficulty!");
-            return false;
+        // Genesis block no need to mine
+        if (this.chain.length > 0) {
+            let {currentTransactions, localDifficulty} = this.mine();
+
+            if (currentTransactions == false) {
+                console.log("Not satisfy the difficulty!");
+                return false;
+            }
         }
 
         // Give reward to miner
@@ -72,7 +78,8 @@ class Blockchain {
             timestamp: new Date().toISOString(),
             transactions: currentTransactions,
             previousHash: this.lastBlock.hash,
-            nonce: Blockchain.nonce()
+            nonce: Blockchain.nonce(),
+            localDifficulty
         };
 
         block.hash = Blockchain.hash(block);
@@ -110,12 +117,35 @@ class Blockchain {
     }
 
     /**
-     * Proof of Work mining algorithm
+     * Proof of Data mining algorithm
      *
      * We hash the block with random string until the hash begins with
      * a "difficulty" number of 0s.
      */
-    async mine(difficulty = 4) {
+    async mine() {
+        const minDifficulty = 4;
+        const blockInterval = 14;
+        let lastBlock = this.lastBlock;
+
+        if (lastBlock == false) return false;
+        let localDifficulty = lastBlock.localDifficulty;
+
+        // Adjust localDifficulty every 10 blocks
+        if (this.chain.length % 10 == 0 && this.chain.length != 0) {
+            let startTime = new Date(this.chain[this.chain.length-10]).getTime();
+            let endTime = new Date(this.chain[this.chain.length-1]).getTime();
+            localDifficulty = localDifficulty*(endTime-startTime)/(1000*10*blockInterval);
+        }
+
+        // Normalize hash value to [0,1]
+        var r = crypto.createHash("sha256").update(Blockchain.hash(lastBlock) + this.address).digest("hex");
+        var b = BigNumber(r, 16);
+        var c = BigNumber("f".repeat(64), 16);
+        // Mimic lottery-like mechanism, calculate difficulty
+        var difficulty = minDifficulty - localDifficulty * Math.log(parseFloat(b.dividedBy(c).toString()));
+
+        console.log(`difficulty: ${difficulty}`);
+
         let currentTransactions = [];
 
         if (this.pendingTransactions.length < difficulty) return false;
@@ -130,7 +160,7 @@ class Blockchain {
             currentTransactions.push(tx);
         }
 
-        return currentTransactions;
+        return {currentTransactions, localDifficulty};
     }
 
     async syncBlock(block) {

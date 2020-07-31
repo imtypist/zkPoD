@@ -1,6 +1,5 @@
 const Blockchain = require("./blockchain");
 
-
 function blockchain_node () {
 
 }

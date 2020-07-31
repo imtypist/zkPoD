@@ -8,9 +8,9 @@ class Blockchain {
     constructor() {
         this.chain = [];
         this.pendingTransactions = [];
-        this.newBlock();
         this.peers = new Set();
-        this.address = uuuid.v1().split('-').join("");
+        this.address = uuid.v1().split('-').join("");
+        this.newBlock();
     }
 
     /**
@@ -48,17 +48,23 @@ class Blockchain {
     /**
      * Creates a new block containing any outstanding transactions
      */
-    newBlock() {
+    async newBlock() {
         let localDifficulty = 1;
+        let currentTransactions = [];
 
         // Genesis block no need to mine
         if (this.chain.length > 0) {
-            let {currentTransactions, localDifficulty} = this.mine();
+            var res = await this.mine();
+
+            currentTransactions = res['currentTransactions'];
+            localDifficulty = res['localDifficulty'];
 
             if (currentTransactions == false) {
                 console.log("Not satisfy the difficulty!");
                 return false;
             }
+        } else {
+            console.log("Initialize the genesis block.")
         }
 
         // Give reward to miner
@@ -84,14 +90,18 @@ class Blockchain {
 
         block.hash = Blockchain.hash(block);
 
-        console.log(`Created block ${block.index}`);
-
         // Add the new block to the blockchain
         this.chain.push(block);
 
-        console.log("We mined a block!")
+        console.log(`Created block ${block.index}`);
         console.log(` - Block hash: ${Blockchain.hash(block)}`);
         console.log(` - nonce:      ${block.nonce}`);
+
+        let peers = this.getPeers();
+        for (var i = peers.length - 1; i >= 0; i--) {
+            console.log(`Broadcast block ${block.index} to peer ${peers[i].address}`);
+            peers[i].syncChain();
+        }
     }
 
     /**
@@ -125,7 +135,7 @@ class Blockchain {
     async mine() {
         const minDifficulty = 4;
         const blockInterval = 14;
-        let lastBlock = this.lastBlock;
+        let lastBlock = this.lastBlock();
 
         if (lastBlock == false) return false;
         let localDifficulty = lastBlock.localDifficulty;
@@ -142,9 +152,11 @@ class Blockchain {
         var b = BigNumber(r, 16);
         var c = BigNumber("f".repeat(64), 16);
         // Mimic lottery-like mechanism, calculate difficulty
-        var difficulty = minDifficulty - localDifficulty * Math.log(parseFloat(b.dividedBy(c).toString()));
+        var difficulty = parseInt(minDifficulty - localDifficulty * Math.log(parseFloat(b.dividedBy(c).toString())));
 
-        console.log(`difficulty: ${difficulty}`);
+        console.log(Math.log(parseFloat(b.dividedBy(c).toString())));
+
+        console.log(`localDifficulty: ${localDifficulty}, difficulty: ${difficulty}`);
 
         let currentTransactions = [];
 
@@ -163,20 +175,29 @@ class Blockchain {
         return {currentTransactions, localDifficulty};
     }
 
-    async syncBlock(block) {
-        if (block.index != (this.chain.length + 1) || block.hash != this.lastBlock.hash) return false;
+    async syncChain(chain) {
+        if (chain.length <= this.chain.length) return false;
 
-        for (var i = block.transactions.length - 1; i >= 0; i--) {
-            var proof = block.transactions[i].proof;
-            var publicSignals = block.transactions[i].publicSignals;
-            res = await verify.Verify(proof, publicSignals);
-            if (res == false) {
-                console.log("Verify failed! Reject this block!");
-                return false;
+        console.log()
+
+        for (var j = chain.length - 1; j >= 0; j--) {
+            var block = chain[j];
+            for (var i = block.transactions.length - 1; i > 0; i--) {
+                var proof = block.transactions[i].proof;
+                var publicSignals = block.transactions[i].publicSignals;
+                let res = await verify.Verify(proof, publicSignals);
+                if (res == false) {
+                    console.log("Verify failed, reject this chain!");
+                    return false;
+                }
             }
         }
 
-        this.chain.push(block);
+        this.chain = chain;
+
+        console.log("Synchronize successfully.");
+
+        console.log(this.chain);
 
     }
 }

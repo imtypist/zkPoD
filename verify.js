@@ -6,7 +6,11 @@ exports.Verify = async function (proof, publicSignals) {
 	// const publicSignals = JSON.parse(fs.readFileSync("./build/publicSignals.json"));
 	// const proof = JSON.parse(fs.readFileSync("./build/proof.json"));
 
+	console.time("Verify time: ");
+
     const res = await snarkjs.groth16.verify(vKey, publicSignals, proof);
+
+    console.timeEnd("Verify time: ");
 
     if (res === true) {
         console.log("Verification OK");

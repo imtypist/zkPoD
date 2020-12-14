@@ -3,7 +3,7 @@ import "ecc/babyjubjubParams.zok" as context
 from "ecc/babyjubjubParams" import BabyJubJubParams
 
 
-def main(field[2] pk, private field sk, field[500] input) -> (bool[500]):
+def main(field[2] pk, private field sk, field[50] input) -> (bool[50]):
   
   // load BabyJubJub context
   BabyJubJubParams ctx = context()
@@ -16,10 +16,10 @@ def main(field[2] pk, private field sk, field[500] input) -> (bool[500]):
   field sigma = 1
   field HALF_WINDOW_SIZE = 2
   field WINDOW_SIZE = 5
-  bool[500] output = [true; 500]
+  bool[50] output = [true; 50]
 
   // for field i in HALF_WINDOW_SIZE..9-HALF_WINDOW_SIZE do
-  for field i in 2..500-2 do
+  for field i in 2..50-2 do
 
     // field[5] findMedian = input[i-HALF_WINDOW_SIZE..i+HALF_WINDOW_SIZE+1]
     field[5] findMedian = [input[i-2],input[i-1],input[i],input[i+1],input[i+2]]

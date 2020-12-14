@@ -19,7 +19,7 @@
       "public": true,
       "type": "array",
       "components": {
-        "size": 10,
+        "size": 50,
         "type": "field"
       }
     }
@@ -28,7 +28,7 @@
     {
       "type": "array",
       "components": {
-        "size": 10,
+        "size": 50,
         "type": "bool"
       }
     }

@@ -1,0 +1,39 @@
+import "ecc/proofOfOwnership.zok" as proofOfOwnership
+import "ecc/babyjubjubParams.zok" as context
+from "ecc/babyjubjubParams" import BabyJubJubParams
+
+
+def main(field[2] pk, private field sk, field[500] input) -> (bool[500]):
+  
+  // load BabyJubJub context
+  BabyJubJubParams ctx = context()
+  
+  // pair(sk, pk), prove ownership of sk
+  bool isPair = proofOfOwnership(pk, sk, ctx)
+  assert(isPair == true)
+
+  // verify data quality
+  field sigma = 1
+  field HALF_WINDOW_SIZE = 2
+  field WINDOW_SIZE = 5
+  bool[500] output = [true; 500]
+
+  // for field i in HALF_WINDOW_SIZE..9-HALF_WINDOW_SIZE do
+  for field i in 2..500-2 do
+
+    // field[5] findMedian = input[i-HALF_WINDOW_SIZE..i+HALF_WINDOW_SIZE+1]
+    field[5] findMedian = [input[i-2],input[i-1],input[i],input[i+1],input[i+2]]
+
+    // bubble sort in a non-decreasing order
+    for field j in 0..WINDOW_SIZE-2 do
+      for field k in j+1..WINDOW_SIZE-1 do
+        field a = if findMedian[j] < findMedian[k] then findMedian[j] else findMedian[k] fi
+        field b = if findMedian[j] < findMedian[k] then findMedian[k] else findMedian[j] fi
+        findMedian[j] = a
+        findMedian[k] = b
+      endfor
+    endfor
+    field median = findMedian[HALF_WINDOW_SIZE]
+    output[i] = if median - sigma > input[i] || median + sigma < input[i] then false else true fi
+  endfor
+  return output

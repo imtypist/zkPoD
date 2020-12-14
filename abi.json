@@ -1,0 +1,36 @@
+{
+  "inputs": [
+    {
+      "name": "pk",
+      "public": true,
+      "type": "array",
+      "components": {
+        "size": 2,
+        "type": "field"
+      }
+    },
+    {
+      "name": "sk",
+      "public": false,
+      "type": "field"
+    },
+    {
+      "name": "input",
+      "public": true,
+      "type": "array",
+      "components": {
+        "size": 10,
+        "type": "field"
+      }
+    }
+  ],
+  "outputs": [
+    {
+      "type": "array",
+      "components": {
+        "size": 10,
+        "type": "bool"
+      }
+    }
+  ]
+}

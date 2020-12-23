@@ -16,5 +16,9 @@ response*
 *.zkey
 build/*.json
 
-out
-out.*
+*.out
+*.json
+*.key
+witness
+zkPoD
+zkPoD.zok

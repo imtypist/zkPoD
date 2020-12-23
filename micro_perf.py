@@ -17,7 +17,8 @@ def generate_inputs(data_len):
 
     path = 'zokrates_inputs.txt'
     keys = [pk.p.x.n, pk.p.y.n, sk.fe.n]
-    args = " ".join(map(str, keys)) + " " + " ".join(map(str, inputs))
+    # Fix the hash of the last block to 0x00000000000000010000000200000003000000040000000500000006...(512 bits) for debug purpose
+    args = " ".join(map(str, keys)) + " " + " ".join(map(str, inputs)) + " 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15"
     return args
 
 
@@ -58,6 +59,7 @@ def micro_test(data_len):
     # VerifyProof
     st = time.perf_counter()
     os.system("zokrates verify > verify.out")
+    sha2 = hashlib.sha256(b'0000000100020003000400050006000700080009001000110012001300140015').hexdigest() # 512bits -> 64 bytes, simulate the operation of calculating hash of the last block
     ed = time.perf_counter()
     print("VerifyProof: %s ms\n" % ((ed - st) * 1000))
     verifyproof = (ed - st) * 1000
@@ -67,9 +69,9 @@ def micro_test(data_len):
 
 
 if __name__ == "__main__":
-    f = open("micro_test.out", "w+")
+    f = open("micro_test.csv", "w+")
     f.write("data_len,constraints,points,genparam,provedata,verifyproof\n")
-    for data_len in range(10, 301 , 10):
+    for data_len in range(10, 21 , 10):
         f.write(micro_test(data_len) + "\n")
     f.close()
     

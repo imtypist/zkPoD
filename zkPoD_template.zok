@@ -1,9 +1,10 @@
 import "ecc/proofOfOwnership.zok" as proofOfOwnership
 import "ecc/babyjubjubParams.zok" as context
 from "ecc/babyjubjubParams" import BabyJubJubParams
+import "hashes/sha256/512bit" as sha256
 
 // data_len will be replaced by python scripts
-def main(field[2] pk, private field sk, field[DATA_LEN] input) -> (bool[DATA_LEN]):
+def main(field[2] pk, private field sk, field[DATA_LEN] input, u32[16] lastBlock) -> (bool[DATA_LEN], u32[8]):
   
   // load BabyJubJub context
   BabyJubJubParams ctx = context()
@@ -36,4 +37,7 @@ def main(field[2] pk, private field sk, field[DATA_LEN] input) -> (bool[DATA_LEN
     field median = findMedian[HALF_WINDOW_SIZE]
     output[i] = if median - sigma > input[i] || median + sigma < input[i] then false else true fi
   endfor
-  return output
+
+  u32[8] h = sha256(lastBlock[0..8], lastBlock[8..16])
+
+  return output, h

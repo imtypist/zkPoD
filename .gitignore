@@ -17,4 +17,4 @@ response*
 build/*.json
 
 out
-out.ztf
+out.*

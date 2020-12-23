@@ -13,7 +13,7 @@ if __name__ == "__main__":
 
     pk = PublicKey.from_private(sk)
 
-    inputs = [i for i in range(10)]
+    inputs = [i for i in range(50)]
 
     path = 'zokrates_inputs.txt'
     keys = [pk.p.x.n, pk.p.y.n, sk.fe.n]

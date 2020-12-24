@@ -45,7 +45,7 @@ def micro_test(data_len, iteration = 10):
     linecache.updatecache("setup.out")
     points = linecache.getline("setup.out", 3).split(" ")[2].strip()
     print("# of points: %s" % points)
-    print("GenParam: %s ms" % ((ed - st) * 1000) / iteration)
+    print("GenParam: %s ms" % ((ed - st) * 1000 / iteration))
     genparam = (ed - st) * 1000 / iteration
 
     # ProveData
@@ -54,7 +54,7 @@ def micro_test(data_len, iteration = 10):
     for i in range(iteration):
         os.system("zokrates compute-witness -i zkPoD -a " + args + " --light > witness.out && zokrates generate-proof -i zkPoD > proof.out")
     ed = time.perf_counter()
-    print("ProveData: %s ms" % ((ed - st) * 1000) / iteration)
+    print("ProveData: %s ms" % ((ed - st) * 1000 / iteration))
     provedata = (ed - st) * 1000 / iteration
 
     # VerifyProof
@@ -64,7 +64,7 @@ def micro_test(data_len, iteration = 10):
         # 512bits -> 64 bytes, simulate the operation of calculating hash of the last block, '8e6245e107a0127f17e480ba65f27e20ac48d13f15eedc93b716eb2806701f7d'
         sha2 = hashlib.sha256(b'0000000100020003000400050006000700080009001000110012001300140015').hexdigest()
     ed = time.perf_counter()
-    print("VerifyProof: %s ms\n" % ((ed - st) * 1000) / iteration)
+    print("VerifyProof: %s ms\n" % ((ed - st) * 1000 / iteration))
     verifyproof = (ed - st) * 1000 / iteration
 
     logs = [data_len, constraints, points, genparam, provedata, verifyproof]
@@ -72,7 +72,7 @@ def micro_test(data_len, iteration = 10):
 
 
 if __name__ == "__main__":
-    iteration = 10
+    iteration = 3
     f = open("micro_test_iter" + str(iteration) + ".csv", "w+")
     f.write("data_len,constraints,points,genparam,provedata,verifyproof\n")
     for data_len in range(10, 601, 10):

@@ -22,7 +22,7 @@ def generate_inputs(data_len):
     return args
 
 
-def micro_test(data_len):
+def micro_test(data_len, iteration = 10):
     # replace DATA_LEN in zkPoD.zok
     with open("zkPoD_template.zok", "r") as f:
         data = f.read().replace("DATA_LEN", str(data_len))
@@ -39,41 +39,43 @@ def micro_test(data_len):
 
     # GenParam
     st = time.perf_counter()
-    os.system("zokrates setup -i zkPoD --light > setup.out")
+    for i in range(iteration):
+        os.system("zokrates setup -i zkPoD --light > setup.out")
     ed = time.perf_counter()
     linecache.updatecache("setup.out")
     points = linecache.getline("setup.out", 3).split(" ")[2].strip()
     print("# of points: %s" % points)
-    print("GenParam: %s ms" % ((ed - st) * 1000))
-    genparam = (ed - st) * 1000
+    print("GenParam: %s ms" % ((ed - st) * 1000) / iteration)
+    genparam = (ed - st) * 1000 / iteration
 
     # ProveData
     args = generate_inputs(data_len)
     st = time.perf_counter()
-    os.system("zokrates compute-witness -i zkPoD -a " + args + " --light > witness.out")
-    os.system("zokrates generate-proof -i zkPoD > proof.out")
+    for i in range(iteration):
+        os.system("zokrates compute-witness -i zkPoD -a " + args + " --light > witness.out && zokrates generate-proof -i zkPoD > proof.out")
     ed = time.perf_counter()
-    print("ProveData: %s ms" % ((ed - st) * 1000))
-    provedata = (ed - st) * 1000
+    print("ProveData: %s ms" % ((ed - st) * 1000) / iteration)
+    provedata = (ed - st) * 1000 / iteration
 
     # VerifyProof
     st = time.perf_counter()
-    os.system("zokrates verify > verify.out")
-    # 512bits -> 64 bytes, simulate the operation of calculating hash of the last block, '8e6245e107a0127f17e480ba65f27e20ac48d13f15eedc93b716eb2806701f7d'
-    sha2 = hashlib.sha256(b'0000000100020003000400050006000700080009001000110012001300140015').hexdigest()
+    for i in range(iteration):
+        os.system("zokrates verify > verify.out")
+        # 512bits -> 64 bytes, simulate the operation of calculating hash of the last block, '8e6245e107a0127f17e480ba65f27e20ac48d13f15eedc93b716eb2806701f7d'
+        sha2 = hashlib.sha256(b'0000000100020003000400050006000700080009001000110012001300140015').hexdigest()
     ed = time.perf_counter()
-    print("VerifyProof: %s ms\n" % ((ed - st) * 1000))
-    verifyproof = (ed - st) * 1000
+    print("VerifyProof: %s ms\n" % ((ed - st) * 1000) / iteration)
+    verifyproof = (ed - st) * 1000 / iteration
 
     logs = [data_len, constraints, points, genparam, provedata, verifyproof]
     return ",".join(map(str, logs))
 
 
 if __name__ == "__main__":
-    f = open("micro_test.csv", "w+")
+    iteration = 10
+    f = open("micro_test_iter" + str(iteration) + ".csv", "w+")
     f.write("data_len,constraints,points,genparam,provedata,verifyproof\n")
-    for data_len in range(10, 501, 10):
-        f.write(micro_test(data_len) + "\n")
-        time.sleep(10) # sleep 10s, let CPU cooler
+    for data_len in range(10, 601, 10):
+        f.write(micro_test(data_len, iteration) + "\n")
     f.close()
     

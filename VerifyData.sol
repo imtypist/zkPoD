@@ -5,6 +5,7 @@ contract VerifyData {
     
     function verify(uint[] memory input) 
         public
+        pure
         returns (bool[] memory) 
     {
         uint sigma = 1;

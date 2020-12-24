@@ -59,7 +59,8 @@ def micro_test(data_len):
     # VerifyProof
     st = time.perf_counter()
     os.system("zokrates verify > verify.out")
-    sha2 = hashlib.sha256(b'0000000100020003000400050006000700080009001000110012001300140015').hexdigest() # 512bits -> 64 bytes, simulate the operation of calculating hash of the last block
+    # 512bits -> 64 bytes, simulate the operation of calculating hash of the last block, '8e6245e107a0127f17e480ba65f27e20ac48d13f15eedc93b716eb2806701f7d'
+    sha2 = hashlib.sha256(b'0000000100020003000400050006000700080009001000110012001300140015').hexdigest()
     ed = time.perf_counter()
     print("VerifyProof: %s ms\n" % ((ed - st) * 1000))
     verifyproof = (ed - st) * 1000
@@ -71,7 +72,8 @@ def micro_test(data_len):
 if __name__ == "__main__":
     f = open("micro_test.csv", "w+")
     f.write("data_len,constraints,points,genparam,provedata,verifyproof\n")
-    for data_len in range(10, 21 , 10):
+    for data_len in range(10, 501, 10):
         f.write(micro_test(data_len) + "\n")
+        time.sleep(10) # sleep 10s, let CPU cooler
     f.close()
     

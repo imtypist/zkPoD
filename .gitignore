@@ -14,7 +14,7 @@ response*
 
 # zkey
 *.zkey
-build/*.json
+build/
 
 *.out
 *.json

@@ -70,14 +70,28 @@ function sc_test(VerifyDataContract, data_len){
   }
   return new Promise((resolve, reject) => {
     web3.eth.getAccounts().then(function(accounts){
-      let st = performance.now();
+      const st = performance.now();
+      // Will call a “constant” method and execute its smart contract method in the EVM without sending any transaction
       VerifyDataContract.methods.verify(input).call({from: accounts[0]}).then(function(result){
         // console.log(result);
-        let ed = performance.now();
-        resolve([data_len, ed - st]);
+        const ed = performance.now();
+        resolve(ed - st);
       });
     });
   });
+}
+
+async function sc_batch_test(VerifyDataContract){
+  for (var data_len = 10; data_len <= 600; data_len += 10) {
+    await sc_test(VerifyDataContract, data_len).then(function(content){
+      console.log(data_len, content);
+      try{
+        fs.writeFileSync('sc_test.csv', data_len.toString() + "," + content.toString() + "\n", {flag: 'a+'});
+      }catch(err){
+        console.error(err);
+      }
+    });
+  }
 }
 
 
@@ -90,14 +104,5 @@ contractObj.then(function(res){
   }catch(err){
     console.error(err);
   }
-  for (var data_len = 10; data_len <= 600; data_len += 10) {
-    sc_test(VerifyDataContract, data_len).then(function(content){
-      console.log(content);
-      try{
-        fs.writeFileSync('sc_test.csv', content[0].toString() + "," + content[1].toString() + "\n", {flag: 'a+'});
-      }catch(err){
-        console.error(err);
-      }
-    });
-  }
+  sc_batch_test(VerifyDataContract);
 })

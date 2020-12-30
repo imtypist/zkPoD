@@ -4,7 +4,6 @@ import time
 import linecache
 from zokrates_pycrypto.eddsa import PrivateKey, PublicKey
 from zokrates_pycrypto.field import FQ
-from zokrates_pycrypto.utils import write_signature_for_zokrates_cli
 
 def generate_inputs(data_len):
     # Seeded for debug purpose

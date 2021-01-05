@@ -14,3 +14,6 @@ a ZoKrates solution
   + solc
 
 ### macro performance
+
+- macro_perf.py
+  + pycrypto

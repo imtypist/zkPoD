@@ -5,7 +5,7 @@ import time
 import random
 
 # parameters that hardcoded in the genesis block
-MIN_WORKLOAD = 300e3
+MIN_WORKLOAD = 350e3
 DELTA_TIME = 10 # s
 # calculated according to micro_test.csv, there is a linear relationship between constraints and provedata
 RUNNING_TIME_PER_CONSTRAINT = 0.03749e-3 # s
@@ -92,8 +92,13 @@ if __name__ == '__main__':
 	f = open("macro_test.csv", "w+")
 	f.write("height,id,rt,workload,local_mean\n")
 
-	for i in range(100):
+	for i in range(1000):
 		final_block = None
+
+		# add another 10 nodes
+		# if i == 50:
+		# 	for i in range(20):
+		# 		miners.append(Miner("N" + str(i+30)))
 
 		for m in miners:
 			new_block = m.create_block()

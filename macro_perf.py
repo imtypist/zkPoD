@@ -95,10 +95,11 @@ if __name__ == '__main__':
 	for i in range(1000):
 		final_block = None
 
-		# add another 10 nodes
-		# if i == 50:
-		# 	for i in range(20):
-		# 		miners.append(Miner("N" + str(i+30)))
+		# add another 30 nodes
+		extra_nodes = 30
+		if i == 300:
+			for i in range(extra_nodes):
+				miners.append(Miner("N" + str(i+30)))
 
 		for m in miners:
 			new_block = m.create_block()

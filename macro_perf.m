@@ -15,7 +15,7 @@ ylabel('Block generation time (second)')
 yyaxis right;
 plot(workload);
 plot(localmean);
-axis([0,1000,1e5,10e5]);
+axis([0,1000,1e5,20e5]);
 grid on;
 handle = legend('Block Generation Time (second)','Workload $\mathcal{C}$','Local Average Workload $\mathcal{C}_{avg}$');
 set(handle,'Interpreter','latex')

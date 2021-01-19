@@ -30,6 +30,7 @@ set(gca,'FontName', 'Times New Roman','FontSize',18);
 legend('ProveData')
 axis([0,650,0,250]);
 grid on;
+ylabel('Running time (second)');
 
 hold on;
 subplot(3,1,3);
@@ -42,7 +43,6 @@ legend('VerifyProof');
 axis([0,650,0,0.1]);
 
 xlabel('The number of data points');
-ylabel('Running time (second)');
 
 figure;
 plot(data_len,smartcontract,'LineWidth',2);
@@ -50,6 +50,6 @@ hold on;
 plot(data_len,verifyproof,'->','LineWidth',2);
 grid on;
 legend('Smart Contract','VerifyProof');
-set(gca,'FontName', 'Times New Roman','FontSize',22);
+set(gca,'FontName', 'Times New Roman','FontSize',18);
 xlabel('The number of data points');
 ylabel('Running time (second)');

@@ -17,8 +17,10 @@ response*
 build/
 
 *.out
-*.json
+package-lock.json
 *.key
 witness
 zkPoD
 zkPoD.zok
+
+pycrypto

@@ -2,11 +2,19 @@
 
 a ZoKrates solution
 
+## Dependencies
+
 ### micro performance
 
 - micro_perf.py
-  + ZoKrates
+  + ZoKrates `v0.6.3`
   + pycrypto
+
+```sh
+git clone https://github.com/Zokrates/pycrypto.git
+pip install -r requirements.txt
+python setup.py install
+```
 
 - sc_perf.js
   + ganache-cli
@@ -17,3 +25,12 @@ a ZoKrates solution
 
 - macro_perf.py
   + pycrypto
+
+### more cases
+
+- ODcaller.py
+  - ZoKrates `v0.8.2`
+
+- ODcaller.js (Invoke different outlier detection algorithms)
+  - zokrates.js
+    + `npm install zokrates-js`

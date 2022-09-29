@@ -1,0 +1,68 @@
+import "ecc/proofOfOwnership.zok" as proofOfOwnership;
+import "ecc/babyjubjubParams.zok" as context;
+from "ecc/babyjubjubParams" import BabyJubJubParams;
+import "hashes/sha256/512bit" as sha256;
+
+
+def update_MP(u32[DATA_LEN] ts, u32[PROFILE_LEN] mut matrix_profile, u32 i, u32 j) -> u32 {
+  u32 mut dist = 0;
+
+  for u32 k in 0..WINDOW_SIZE {
+    dist = dist + (ts[i+k] - ts[j+k])*(ts[i+k] - ts[j+k]);
+  }
+
+  return matrix_profile[j] > dist ? dist : matrix_profile[j];
+}
+
+def MP(u32[DATA_LEN] ts) -> bool {
+  u32[PROFILE_LEN] mut matrix_profile = [0; PROFILE_LEN];
+
+  // compute matrix_profile
+  for u32 i in 0..PROFILE_LEN {
+    for u32 j in 0..PROFILE_LEN {
+      matrix_profile[j] = if i != j {
+        update_MP(ts, matrix_profile, i, j)
+      } else { 0 };
+    }
+  }
+
+  // find top k outliers
+  u32 top_k = 5;
+  for u32 i in 0..5 {
+    u32 mut cur_top = matrix_profile[0];
+    u32 mut cur_top_index = 0;
+    for u32 j in 1..PROFILE_LEN-i {
+      cur_top = if matrix_profile[j] > cur_top {
+        matrix_profile[j]
+      } else { cur_top };
+      cur_top_index = if matrix_profile[j] > cur_top {
+        j
+      } else { cur_top_index };
+    }
+    
+    matrix_profile[cur_top_index] = matrix_profile[PROFILE_LEN-i-1];
+    matrix_profile[PROFILE_LEN-i-1] = cur_top;
+  }
+
+  u32 threshold = 10;
+  bool output = matrix_profile[PROFILE_LEN-1] > threshold ? false : true;
+
+  return output;
+}
+
+
+def main(field[2] pk, private field sk, u32[DATA_LEN] input, u32[16] lastBlock) -> (bool, u32[8]) {
+  // load BabyJubJub context
+  BabyJubJubParams ctx = context();
+  
+  // pair(sk, pk), prove ownership of sk
+  bool isPair = proofOfOwnership(pk, sk, ctx);
+  assert(isPair == true);
+
+  // verify data quality: implement specific outlier detection algorithms here
+  bool output = MP(input);
+
+  u32[8] h = sha256(lastBlock[0..8], lastBlock[8..16]);
+
+  return (output, h);
+}

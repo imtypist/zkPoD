@@ -41,41 +41,41 @@ def micro_test(OD_NAME, data_len, path):
     st = time.perf_counter()
     os.system("cd " + path + " && zokrates setup -i " + OD_NAME + " > setup.out")
     ed = time.perf_counter()
-    linecache.updatecache(path + "setup.out")
-    points = linecache.getline(path + "setup.out", 3).split(" ")[2].strip()
-    print("# of points: %s" % points)
-    print("GenParam: %s ms" % ((ed - st) * 1000))
     genparam = (ed - st) * 1000
+    print("GenParam: %s ms" % genparam)
 
     # ProveData
     args = generate_inputs(data_len)
     st = time.perf_counter()
     os.system("cd " + path + " && zokrates compute-witness -i " + OD_NAME + " -a " + args + " > witness.out && zokrates generate-proof -i " + OD_NAME + " > proof.out")
     ed = time.perf_counter()
-    print("ProveData: %s ms" % ((ed - st) * 1000))
     provedata = (ed - st) * 1000
+    print("ProveData: %s ms" % provedata)
 
     # VerifyProof
-    st = time.perf_counter()
-    os.system("cd " + path + " && zokrates verify > verify.out")
-    # 512bits -> 64 bytes, simulate the operation of calculating hash of the last block, '8e6245e107a0127f17e480ba65f27e20ac48d13f15eedc93b716eb2806701f7d'
-    sha2 = hashlib.sha256(b'0000000100020003000400050006000700080009001000110012001300140015').hexdigest()
-    ed = time.perf_counter()
-    print("VerifyProof: %s ms\n" % ((ed - st) * 1000))
-    verifyproof = (ed - st) * 1000
+    verifyproof = float("inf")
+    for i in range(5):
+        st = time.perf_counter()
+        os.system("cd " + path + " && zokrates verify > verify.out")
+        # 512bits -> 64 bytes, simulate the operation of calculating hash of the last block, '8e6245e107a0127f17e480ba65f27e20ac48d13f15eedc93b716eb2806701f7d'
+        sha2 = hashlib.sha256(b'0000000100020003000400050006000700080009001000110012001300140015').hexdigest()
+        ed = time.perf_counter()
+        if verifyproof > (ed - st) * 1000:
+            verifyproof = (ed - st) * 1000
+    print("VerifyProof: %s ms\n" % verifyproof)
 
-    logs = [data_len, constraints, points, genparam, provedata, verifyproof]
+    logs = [data_len, constraints, genparam, provedata, verifyproof]
     return ",".join(map(str, logs))
 
 
 if __name__ == "__main__":
     OD_NAME = "MP"
     f = open(OD_NAME + "_micro_test.csv", "w+")
-    f.write("data_len,constraints,points,genparam,provedata,verifyproof\n")
+    f.write("data_len,constraints,genparam,provedata,verifyproof\n")
     if not os.path.exists("build"):
         os.makedirs("build")
     for data_len in range(50, 601, 50):
-        path = "./build/" + str(data_len) + "/"
+        path = "./build/" + OD_NAME + "/" + str(data_len) + "/"
         if not os.path.exists(path):
             os.makedirs(path)
         f.write(micro_test(OD_NAME, data_len, path) + "\n")

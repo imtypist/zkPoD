@@ -1,0 +1,27 @@
+import "ecc/proofOfOwnership.zok" as proofOfOwnership;
+import "ecc/babyjubjubParams.zok" as context;
+from "ecc/babyjubjubParams" import BabyJubJubParams;
+import "hashes/sha256/512bit" as sha256;
+
+def AR(u32[DATA_LEN] ts) -> bool {
+  
+
+  return output;
+}
+
+
+def main(field[2] pk, private field sk, u32[DATA_LEN] input, u32[16] lastBlock) -> (bool, u32[8]) {
+  // load BabyJubJub context
+  BabyJubJubParams ctx = context();
+  
+  // pair(sk, pk), prove ownership of sk
+  bool isPair = proofOfOwnership(pk, sk, ctx);
+  assert(isPair == true);
+
+  // verify data quality: implement specific outlier detection algorithms here
+  bool output = AR(input);
+
+  u32[8] h = sha256(lastBlock[0..8], lastBlock[8..16]);
+
+  return (output, h);
+}

@@ -4,7 +4,16 @@ from "ecc/babyjubjubParams" import BabyJubJubParams;
 import "hashes/sha256/512bit" as sha256;
 
 def AR(u32[DATA_LEN] ts) -> bool {
-  
+  u32 p = 5; // AR(5)
+  u32[5] coefficients = [1; 5]; // coefficients should be trained parameters, here we use dummy coefficients
+  u32 mut err = 0;
+  for u32 i in 5..DATA_LEN {
+    u32 xt = ts[i-5]*coefficients[0] + ts[i-4]*coefficients[1] + ts[i-3]*coefficients[2] + ts[i-2]*coefficients[3] + ts[i-1]*coefficients[4];
+    err = err + (xt - ts[i])*(xt - ts[i]);
+  }
+
+  u32 threshold = 1000;
+  bool output = err > threshold ? false : true;
 
   return output;
 }

@@ -1,0 +1,64 @@
+import "ecc/proofOfOwnership.zok" as proofOfOwnership;
+import "ecc/babyjubjubParams.zok" as context;
+from "ecc/babyjubjubParams" import BabyJubJubParams;
+import "hashes/sha256/512bit" as sha256;
+
+struct iTree {
+  bool is_leaf;
+  u32 set_size;
+  u32[DATA_LEN] left_set;
+  u32 left_size;
+  u32[DATA_LEN] right_set;
+  u32 right_size;
+} // struct is not well supported, so cannot recursively use iTree type inside
+
+def IForest(u32[DATA_LEN] ts) -> bool { // here we implement one-dimension iforest
+  u32[DATA_LEN] mut left_set = [0; DATA_LEN];
+  u32[DATA_LEN] mut right_set = [0; DATA_LEN];
+
+  iTree mut root = iTree {is_leaf: false, set_size: DATA_LEN, left_set: left_set, left_size: 0, right_set: right_set, right_size: 0};
+  u32 mut max = ts[0];
+  u32 mut min = ts[0];
+  for u32 i in 1..DATA_LEN {
+    max = if ts[i] > max { ts[i] } else { max };
+    min = if ts[i] < min { ts[i] } else { min };
+  }
+  u32 chosen_q = (max + min) / 2;
+
+  u32 mut left_size = 0;
+  u32 mut right_size = 0;
+  
+  for u32 i in 0..DATA_LEN {
+    left_set[left_size] = if ts[i] < chosen_q { ts[i] } else { 0 };
+    left_size = if ts[i] < chosen_q { left_size+1 } else { left_size };
+
+    right_set[right_size] = if ts[i] >= chosen_q { ts[i] } else { 0 };
+    right_size = if ts[i] >= chosen_q { right_size+1 } else { right_size };
+  }
+
+  root.left_set = left_set;
+  root.left_size = left_size;
+  root.right_set = right_set;
+  root.right_size = right_size;
+
+  bool output = if right_size == 1 || left_size == 1 { false } else { true };
+
+  return output;
+}
+
+
+def main(field[2] pk, private field sk, u32[DATA_LEN] input, u32[16] lastBlock) -> (bool, u32[8]) {
+  // load BabyJubJub context
+  BabyJubJubParams ctx = context();
+  
+  // pair(sk, pk), prove ownership of sk
+  bool isPair = proofOfOwnership(pk, sk, ctx);
+  assert(isPair == true);
+
+  // verify data quality: implement specific outlier detection algorithms here
+  bool output = IForest(input);
+
+  u32[8] h = sha256(lastBlock[0..8], lastBlock[8..16]);
+
+  return (output, h);
+}

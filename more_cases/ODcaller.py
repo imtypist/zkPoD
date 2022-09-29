@@ -69,12 +69,12 @@ def micro_test(OD_NAME, data_len, path):
 
 
 if __name__ == "__main__":
-    OD_NAME = "MP"
+    OD_NAME = "IForest"
     f = open(OD_NAME + "_micro_test.csv", "w+")
     f.write("data_len,constraints,genparam,provedata,verifyproof\n")
     if not os.path.exists("build"):
         os.makedirs("build")
-    for data_len in range(50, 601, 50):
+    for data_len in range(50, 351, 50):
         path = "./build/" + OD_NAME + "/" + str(data_len) + "/"
         if not os.path.exists(path):
             os.makedirs(path)
